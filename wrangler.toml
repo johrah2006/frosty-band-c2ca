@@ -1,0 +1,10 @@
+name = "national-ai-gallery"
+main = "worker.js"
+compatibility_date = "2026-09-19"
+
+[ai]
+binding = "AI"
+
+[assets]
+directory = "."
+binding = "ASSETS"

@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحتي الوطنية | عزنا بطبعنا</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:linear-gradient(135deg,#f5f1e7,#e9f2eb);color:#173b2b}
+header{padding:34px 18px;text-align:center;background:linear-gradient(135deg,#0d5c3b,#174f39);color:#fff}
+header h1{margin:0;font-size:38px}header p{margin:10px 0 0;font-size:20px}.ai-slogan{margin-top:12px;font-size:27px;font-weight:800;letter-spacing:.2px;color:#e8d79b}
+main{max-width:1050px;margin:25px auto;padding:0 16px}.card{background:#fff;border-radius:22px;padding:24px;margin-bottom:22px;box-shadow:0 8px 30px #0001}
+label{display:block;font-weight:bold;margin:12px 0 7px}input,textarea{width:100%;padding:14px;border:1px solid #ccd8d0;border-radius:12px;font-size:16px}textarea{min-height:125px;resize:vertical}
+button{border:0;border-radius:12px;padding:13px 20px;font-size:16px;font-weight:bold;cursor:pointer;margin:8px 4px 0 0}
+.primary{background:#0d6b43;color:#fff}.secondary{background:#e9f0eb;color:#174f39}
+#status{margin-top:12px;font-weight:bold}.art{display:none;text-align:center}.art img{width:100%;max-width:900px;aspect-ratio:4/3;object-fit:cover;border-radius:20px;box-shadow:0 12px 35px #0003}
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.item{background:#f7faf8;border-radius:16px;padding:12px}.item img{width:100%;border-radius:12px}.name{font-weight:bold;margin-top:8px}.empty{text-align:center;color:#667}
+footer{text-align:center;padding:24px;color:#557}
+</style>
+</head>
+<body>
+<header>
+<h1>🇸🇦 لوحتي الوطنية</h1>
+<p>اليوم الوطني السعودي 96 — «عزنا بطبعنا»</p><div class="ai-slogan">وطن بعيون الذكاء الاصطناعي</div>
+</header>
+<main>
+<section class="card">
+<h2>✨ عبّري عن شعورك</h2>
+<label>اسم المعلمة</label>
+<input id="teacher" placeholder="اكتبي اسمك">
+<label>شعورك تجاه الوطن</label>
+<textarea id="feeling" placeholder="اكتبي شعورك أو كلماتك عن اليوم الوطني..."></textarea>
+<button class="primary" onclick="generate()">🎨 ولّدي لوحتي بالذكاء الاصطناعي</button>
+<div id="status"></div>
+</section>
+
+<section class="card art" id="result">
+<h2>لوحتك الوطنية</h2>
+<img id="artImg" alt="لوحة وطنية">
+<div>
+<button class="primary" onclick="save()">💾 حفظ في معرض اللوحات</button>
+<button class="secondary" onclick="generate()">🔄 توليد لوحة أخرى</button>
+</div>
+</section>
+
+<section class="card">
+<h2>🖼️ معرض اللوحات الوطنية</h2>
+<div id="gallery" class="gallery"></div>
+<div id="empty" class="empty">لم تُحفظ لوحات بعد.</div>
+</section>
+</main>
+<footer>إعداد وتنفيذ: جوهره بركه علي الجابري — المتوسطة السابعة والأربعون</footer>
+
+<script>
+let current=null;
+function esc(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function svgData(name,feeling){
+ const f=feeling.trim().slice(0,220);
+ const n=name.trim().slice(0,70);
+ const low=f.toLowerCase();
+
+ // يختار عناصر بصرية مرتبطة بكلمات الشعور التي كتبتها المعلمة.
+ let theme="فخر واعتزاز";
+ if(/حب|محبة|احب|قلبي|وطن/.test(low)) theme="حب الوطن";
+ else if(/فخر|اعتزاز|عز|عزيزة|عزيز/.test(low)) theme="فخر واعتزاز";
+ else if(/امتنان|شكر|نعمة|حمد/.test(low)) theme="امتنان";
+ else if(/أمل|امل|طموح|مستقبل|تفاؤل/.test(low)) theme="أمل وطموح";
+ else if(/انتماء|انتمائي|هوية/.test(low)) theme="انتماء";
+ else if(/سعادة|فرح|فرحانة|سعيد/.test(low)) theme="فرح وسعادة";
+
+ const safe = esc(f), safeName=esc(n), safeTheme=esc(theme);
+
+ const palettes = {
+   "حب الوطن":["#075b3a","#dceee4","#c9aa4a"],
+   "فخر واعتزاز":["#064f35","#e8f2ea","#d7b85a"],
+   "امتنان":["#356b50","#f0f0dc","#c9aa4a"],
+   "أمل وطموح":["#1d6b51","#eef4ed","#d9c46b"],
+   "انتماء":["#0a5137","#e4efe8","#c4a94d"],
+   "فرح وسعادة":["#08704a","#f4f1df","#d8b95a"]
+ };
+ const p=palettes[theme]||palettes["فخر واعتزاز"];
+
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`
+ <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820">
+ <defs>
+   <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+     <stop stop-color="${p[0]}"/><stop offset=".5" stop-color="${p[1]}"/><stop offset="1" stop-color="${p[2]}"/>
+   </linearGradient>
+   <radialGradient id="sun"><stop stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+   <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-opacity=".2"/></filter>
+ </defs>
+ <rect width="1200" height="820" rx="35" fill="url(#bg)"/>
+ <circle cx="940" cy="190" r="190" fill="url(#sun)"/>
+ <g opacity=".3" stroke="#fff" stroke-width="4">
+   <path d="M940 40V110M1090 190H1020M1045 85L995 135M835 85L885 135"/>
+ </g>
+
+ <!-- راية سعودية رمزية -->
+ <path d="M115 105 Q115 82 138 82 H390 V220 H138 Q115 220 115 197Z" fill="#075b3a" filter="url(#shadow)"/>
+ <text x="252" y="145" text-anchor="middle" font-family="Tahoma" font-size="28" fill="#fff">🇸🇦</text>
+ <text x="252" y="180" text-anchor="middle" font-family="Tahoma" font-size="23" fill="#fff">اليوم الوطني ٩٦</text>
+
+ <text x="600" y="125" text-anchor="middle" font-family="Tahoma" font-size="54" font-weight="bold" fill="#fff">عزنا بطبعنا</text>
+ <text x="600" y="180" text-anchor="middle" font-family="Tahoma" font-size="31" font-weight="bold" fill="#173b2b">${safeTheme}</text>
+
+ <!-- مشهد فني يتغير دلالياً حسب الشعور -->
+ <path d="M0 570 Q180 450 360 570 T720 555 T1200 540 V820 H0Z" fill="${p[0]}" opacity=".92"/>
+ <path d="M0 650 Q200 560 420 665 T820 635 T1200 625 V820 H0Z" fill="#063f2a" opacity=".78"/>
+ <g fill="#fff" opacity=".75">
+   <circle cx="175" cy="380" r="9"/><circle cx="215" cy="345" r="6"/><circle cx="1020" cy="355" r="8"/>
+   <circle cx="1080" cy="320" r="5"/><circle cx="900" cy="420" r="6"/>
+ </g>
+
+ <!-- قلب/نجمة تعبيرية -->
+ <text x="600" y="370" text-anchor="middle" font-family="Arial,Tahoma" font-size="95" fill="#fff">${theme==="حب الوطن"?"♥":theme==="أمل وطموح"?"✦":theme==="فرح وسعادة"?"✿":theme==="امتنان"?"♡":"★"}</text>
+ <text x="600" y="455" text-anchor="middle" font-family="Tahoma" font-size="34" font-weight="bold" fill="#173b2b">${safe}</text>
+
+ <rect x="260" y="700" width="680" height="70" rx="35" fill="#fff" opacity=".9"/>
+ <text x="600" y="745" text-anchor="middle" font-family="Tahoma" font-size="28" fill="#173b2b">المعلمة: ${safeName}</text>
+ </svg>`);
+}
+
+async function generate(){
+ const name=document.getElementById('teacher').value.trim(), feeling=document.getElementById('feeling').value.trim();
+ if(!name||!feeling){document.getElementById('status').textContent='فضلاً اكتبي اسم المعلمة والشعور أولاً.';return}
+ const status=document.getElementById('status');
+ status.textContent='⏳ الذكاء الاصطناعي يرسم لوحتك الآن...';
+ try{
+   const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,feeling})});
+   if(!r.ok) throw new Error('AI endpoint unavailable');
+   const data=await r.json();
+   if(!data.dataURI) throw new Error('No image');
+   current={name,feeling,img:data.dataURI};
+   document.getElementById('artImg').src=current.img;
+   document.getElementById('result').style.display='block';
+   status.textContent='✨ تم إنشاء لوحة فنية بالذكاء الاصطناعي مستوحاة من شعورك.';
+ }catch(e){
+   current={name,feeling,img:svgData(name,feeling)};
+   document.getElementById('artImg').src=current.img;
+   document.getElementById('result').style.display='block';
+   status.textContent='✨ تم إنشاء لوحة مستوحاة من شعورك. فعّلي Workers AI للحصول على صورة AI حقيقية.';
+ }
+}
+function save(){
+ if(!current)return;
+ const arr=JSON.parse(localStorage.getItem('nationalGallery')||'[]');
+ arr.unshift({...current,date:new Date().toLocaleDateString('ar-SA')});
+ localStorage.setItem('nationalGallery',JSON.stringify(arr.slice(0,100)));render();
+ document.getElementById('status').textContent='💚 تم حفظ اللوحة في المعرض على هذا الجهاز.';
+}
+function render(){
+ const arr=JSON.parse(localStorage.getItem('nationalGallery')||'[]'),g=document.getElementById('gallery'),e=document.getElementById('empty');
+ g.innerHTML='';e.style.display=arr.length?'none':'block';
+ arr.forEach(x=>{const d=document.createElement('div');d.className='item';d.innerHTML=`<img src="${x.img}"><div class="name">${esc(x.name)}</div><small>${esc(x.date)}</small>`;g.appendChild(d)})
+}
+render();
+</script>
+</body></html>
